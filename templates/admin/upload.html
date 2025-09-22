@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2>Upload {{ rtype|capitalize }}</h2>
+  <form class="form" method="post" enctype="multipart/form-data">
+    <label>Semester</label>
+    <input name="semester" placeholder="e.g., S1" required>
+
+    <label>Subject</label>
+    <input name="subject" placeholder="e.g., Data Structures" required>
+
+    {% if rtype == 'notes' %}
+      <label>Title</label>
+      <input name="title" placeholder="e.g., Unit 1 Notes">
+    {% elif rtype == 'papers' %}
+      <label>Year</label>
+      <input name="year" placeholder="e.g., 2023">
+    {% endif %}
+
+    <label>File</label>
+    <input type="file" name="file" required>
+    <button class="btn" type="submit">Upload</button>
+  </form>
+
+  <p style="margin-top:12px;">
+    Manage: 
+    <a href="{{ url_for('admin_manage', rtype='syllabus') }}">Syllabus</a> •
+    <a href="{{ url_for('admin_manage', rtype='notes') }}">Notes</a> •
+    <a href="{{ url_for('admin_manage', rtype='papers') }}">Question Papers</a>
+  </p>
+</div>
+{% endblock %}

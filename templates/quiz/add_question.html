@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2>Add Questions: {{ quiz.title }}</h2>
+  {% if quiz.randomize_questions %}
+    <div style="background: #fff3cd; padding: 10px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #ffc107;">
+      <strong>🎲 Random Selection Enabled</strong><br>
+      {% if quiz.questions_per_attempt %}
+        Students will see {{ quiz.questions_per_attempt }} randomly selected questions per attempt.
+        <br><strong>Recommendation:</strong> Add at least {{ quiz.questions_per_attempt * 1.5|int }} questions for good variety.
+      {% else %}
+        Students will see all questions in random order.
+      {% endif %}
+    </div>
+  {% endif %}
+  <form method="post" class="form">
+    <label>Question</label>
+    <textarea name="question" rows="3" required></textarea>
+    <label>Option A</label>
+    <input name="option_a" required>
+    <label>Option B</label>
+    <input name="option_b" required>
+    <label>Option C</label>
+    <input name="option_c" required>
+    <label>Option D</label>
+    <input name="option_d" required>
+    <label>Correct Option (A/B/C/D)</label>
+    <input name="correct_option" maxlength="1" required>
+    <button class="btn" type="submit">Add</button>
+  </form>
+  <h3 style="margin-top:16px;">Current Questions ({{ quiz.questions|length }})</h3>
+  <ol>
+    {% for q in quiz.questions %}
+      <li>{{ q.question }} <span class="pill">Answer: {{ q.correct_option }}</span></li>
+    {% endfor %}
+  </ol>
+</div>
+{% endblock %}

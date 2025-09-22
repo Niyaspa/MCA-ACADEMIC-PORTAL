@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2>Notifications</h2>
+  {% if notifications %}
+    <ul>
+      {% for n in notifications %}
+        <li style="margin:10px 0;">
+          <strong>{{ n.title }}</strong>
+          <div style="font-size:14px;color:#cbd5e1">{{ n.body }}</div>
+          {% if n.link %}<a href="{{ n.link }}" target="_blank">Open link</a>{% endif %}
+          <div style="font-size:12px;color:#9aa4b2">{{ n.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No notifications yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

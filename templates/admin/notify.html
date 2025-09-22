@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2>Send Notification</h2>
+  <form method="post" class="form">
+    <label>Title</label>
+    <input name="title" required>
+    <label>Message</label>
+    <textarea name="body" rows="4" required></textarea>
+    <label>Optional Link</label>
+    <input name="link" placeholder="https://...">
+
+    <label>Audience</label>
+    <select name="audience" onchange="onAudienceChange(this.value)">
+      <option value="all">All Students</option>
+      <option value="semester">By Semester</option>
+      <option value="user">Specific User</option>
+    </select>
+
+    <div id="semesterField" style="display:none">
+      <label>Semester</label>
+      <input name="audience_semester" placeholder="S1">
+    </div>
+
+    <div id="userField" style="display:none">
+      <label>User</label>
+      <select name="audience_user_id">
+        <option value="">-- choose --</option>
+        {% for u in users %}
+          <option value="{{ u.id }}">{{ u.name }} ({{ u.email }})</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <button class="btn" type="submit">Send</button>
+  </form>
+</div>
+<script>
+function onAudienceChange(val){
+  document.getElementById('semesterField').style.display = (val==='semester')?'block':'none';
+  document.getElementById('userField').style.display = (val==='user')?'block':'none';
+}
+</script>
+{% endblock %}

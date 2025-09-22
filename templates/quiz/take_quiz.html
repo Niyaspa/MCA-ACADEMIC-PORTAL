@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2>{{ quiz.title }}</h2>
+  {% if quiz.randomize_questions %}
+    <div style="background: #e8f4fd; padding: 10px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #2196f3;">
+      <strong>📝 Random Question Quiz</strong><br>
+      {% if quiz.questions_per_attempt %}
+        This quiz shows {{ quiz.questions_per_attempt }} randomly selected questions out of {{ quiz.total_questions }} total questions.
+      {% else %}
+        This quiz shows all {{ quiz.total_questions }} questions in random order.
+      {% endif %}
+      <br><small>Each attempt may show different questions.</small>
+    </div>
+  {% endif %}
+  <form method="post">
+    {% for q in quiz.questions %}
+      <div class="card" style="margin:10px 0;">
+        <strong>Q{{ loop.index }}.</strong> {{ q.question }}
+        <div style="margin-top:8px;display:grid;gap:6px;">
+          <label><input type="radio" name="q{{ q.id }}" value="A"> A) {{ q.option_a }}</label>
+          <label><input type="radio" name="q{{ q.id }}" value="B"> B) {{ q.option_b }}</label>
+          <label><input type="radio" name="q{{ q.id }}" value="C"> C) {{ q.option_c }}</label>
+          <label><input type="radio" name="q{{ q.id }}" value="D"> D) {{ q.option_d }}</label>
+        </div>
+      </div>
+    {% endfor %}
+    <button class="btn" type="submit">Submit</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title or "MCA Academic Portal" }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta name="theme-color" content="#059669">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzNiODJmNiIvPgo8cGF0aCBkPSJNOCAxMGgxNnY0SDhWMTB6TTggMTZoMTZ2NEg4VjE2ek04IDIyaDE2djRIOFYyMnoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=">
+</head>
+<body>
+  <nav class="topbar">
+    <div class="nav-links">
+      <a href="{{ url_for('index') }}" class="brand">
+        <i class="fas fa-graduation-cap mr-2"></i>MCA Portal
+      </a>
+      {% if current_user.is_authenticated %}
+        {% if current_user.role == 'admin' %}
+          <a href="{{ url_for('admin_dashboard') }}">
+            <i class="fas fa-tachometer-alt"></i> Admin
+          </a>
+        {% else %}
+          <a href="{{ url_for('student_dashboard') }}">
+            <i class="fas fa-home"></i> Dashboard
+          </a>
+        {% endif %}
+        <a href="{{ url_for('syllabus_list') }}">
+          <i class="fas fa-book"></i> Syllabus
+        </a>
+        <a href="{{ url_for('notes_list') }}">
+          <i class="fas fa-sticky-note"></i> Notes
+        </a>
+        <a href="{{ url_for('papers_list') }}">
+          <i class="fas fa-file-alt"></i> Papers
+        </a>
+        <a href="{{ url_for('quiz_list') }}">
+          <i class="fas fa-question-circle"></i> Quizzes
+        </a>
+        <a href="{{ url_for('notifications') }}">
+          <i class="fas fa-bell"></i> Notifications
+        </a>
+      {% endif %}
+    </div>
+    <div class="user-section">
+      {% if current_user.is_authenticated %}
+        <span class="pill">
+          <i class="fas fa-user"></i>
+          Hi, {{ current_user.name.split(' ')[0] }}
+        </span>
+        <a class="btn small secondary" href="{{ url_for('logout') }}">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+      {% else %}
+        <a class="btn small secondary" href="{{ url_for('login') }}">
+          <i class="fas fa-sign-in-alt"></i> Login
+        </a>
+        <a class="btn small" href="{{ url_for('register') }}">
+          <i class="fas fa-user-plus"></i> Register
+        </a>
+      {% endif %}
+    </div>
+  </nav>
+
+  <main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flashes">
+          {% for category, msg in messages %}
+            <div class="flash {{ category }}">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    <p>&copy; 2025 MCA Academic Portal</p>
+  </footer>
+</body>
+</html>

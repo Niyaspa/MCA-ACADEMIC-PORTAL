@@ -1,0 +1,344 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="resource-header">
+  <div class="header-content">
+    <h1 class="resource-title">
+      {% if resource == 'syllabus' %}
+        <i class="fas fa-book"></i> {{ title }}
+      {% elif resource == 'notes' %}
+        <i class="fas fa-sticky-note"></i> {{ title }}
+      {% else %}
+        <i class="fas fa-file-alt"></i> {{ title }}
+      {% endif %}
+    </h1>
+    <p class="resource-subtitle">Browse and download academic resources</p>
+  </div>
+  <div class="resource-stats">
+    <div class="stat-item">
+      <span class="stat-number">{{ items|length }}</span>
+      <span class="stat-label">Items</span>
+    </div>
+  </div>
+</div>
+
+<form method="get" class="filter-form">
+  <div class="filter-group">
+    <label>Semester</label>
+    <input name="semester" value="{{ semester or '' }}" placeholder="e.g., S1">
+  </div>
+  <div class="filter-group">
+    <label>Subject</label>
+    <select name="subject">
+      <option value="">All Subjects</option>
+      {% for subj in available_subjects %}
+        <option value="{{ subj }}" {% if subj == subject %}selected{% endif %}>{{ subj }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button class="btn" type="submit">
+    <i class="fas fa-filter"></i> Filter
+  </button>
+  {% if semester or subject %}
+    <a href="?" class="btn secondary">
+      <i class="fas fa-times"></i> Clear
+    </a>
+  {% endif %}
+</form>
+
+{% if items %}
+  <div class="resource-grid">
+    {% for i in items %}
+      <div class="resource-card">
+        <div class="resource-icon">
+          {% if resource == 'syllabus' %}
+            <i class="fas fa-book"></i>
+          {% elif resource == 'notes' %}
+            <i class="fas fa-sticky-note"></i>
+          {% else %}
+            <i class="fas fa-file-alt"></i>
+          {% endif %}
+        </div>
+        
+        <div class="resource-info">
+          {% if resource == 'notes' %}
+            <h3 class="resource-name">{{ i.title }}</h3>
+          {% else %}
+            <h3 class="resource-name">{{ i.filename.rsplit('.', 1)[0] }}</h3>
+          {% endif %}
+          
+          <div class="resource-meta">
+            <span class="meta-item">
+              <i class="fas fa-graduation-cap"></i>
+              {{ i.semester }}
+            </span>
+            <span class="meta-item">
+              <i class="fas fa-tag"></i>
+              {{ i.subject }}
+            </span>
+            {% if resource == 'papers' %}
+              <span class="meta-item">
+                <i class="fas fa-calendar"></i>
+                {{ i.year }}
+              </span>
+            {% endif %}
+          </div>
+          
+          {% if resource == 'notes' and i.title != i.filename.rsplit('.', 1)[0] %}
+            <p class="resource-description">{{ i.filename }}</p>
+          {% endif %}
+        </div>
+        
+        <div class="resource-actions">
+          <a href="{{ url_for('download_file', sub=resource, filename=i.filename) }}" 
+             class="btn download-btn" download>
+            <i class="fas fa-download"></i>
+            Download
+          </a>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-resources">
+    <div class="empty-icon">
+      {% if resource == 'syllabus' %}
+        <i class="fas fa-book"></i>
+      {% elif resource == 'notes' %}
+        <i class="fas fa-sticky-note"></i>
+      {% else %}
+        <i class="fas fa-file-alt"></i>
+      {% endif %}
+    </div>
+    <h3>No {{ resource }} found</h3>
+    <p>{% if semester or subject %}Try adjusting your filters or{% endif %} check back later for new resources.</p>
+    {% if semester or subject %}
+      <a href="?" class="btn">
+        <i class="fas fa-refresh"></i> View All
+      </a>
+    {% endif %}
+  </div>
+{% endif %}
+
+<style>
+.resource-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  padding: 32px;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(234, 88, 12, 0.1) 100%);
+  border-radius: 20px;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.resource-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.resource-title i {
+  color: #059669;
+  margin-right: 12px;
+}
+
+.resource-subtitle {
+  color: #6b7280;
+  margin: 8px 0 0 0;
+  font-size: 1.125rem;
+}
+
+.resource-stats {
+  text-align: center;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  padding: 16px 24px;
+  border-radius: 12px;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.resource-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.resource-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: 16px;
+  padding: 24px;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.resource-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px 0 rgba(0, 0, 0, 0.1);
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+.resource-icon {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #059669, #047857);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  color: white;
+  align-self: flex-start;
+  box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
+}
+
+.resource-info {
+  flex: 1;
+}
+
+.resource-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+}
+
+.resource-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: #6b7280;
+  background: rgba(243, 244, 246, 0.8);
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.meta-item i {
+  color: #059669;
+  font-size: 0.75rem;
+}
+
+.resource-description {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin: 8px 0 0 0;
+  line-height: 1.4;
+}
+
+.resource-actions {
+  margin-top: auto;
+}
+
+.download-btn {
+  background: linear-gradient(135deg, #059669, #047857);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.download-btn:hover {
+  background: linear-gradient(135deg, #047857, #065f46);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(5, 150, 105, 0.4);
+}
+
+.empty-resources {
+  text-align: center;
+  padding: 64px 32px;
+  color: #6b7280;
+}
+
+.empty-icon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 24px;
+  background: rgba(243, 244, 246, 0.8);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  color: #9ca3af;
+}
+
+.empty-resources h3 {
+  color: #374151;
+  font-size: 1.5rem;
+  margin: 0 0 12px 0;
+}
+
+.empty-resources p {
+  font-size: 1rem;
+  margin: 0 0 24px 0;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .resource-header {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+    padding: 24px;
+  }
+  
+  .resource-title {
+    font-size: 1.875rem;
+  }
+  
+  .resource-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .resource-card {
+    padding: 20px;
+  }
+}
+</style>
+{% endblock %}

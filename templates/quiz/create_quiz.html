@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2>Create Quiz</h2>
+  <form method="post" class="form">
+    <label>Title</label>
+    <input name="title" required>
+    <label>Semester</label>
+    <input name="semester" placeholder="S1" required>
+    <label>Subject</label>
+    <input name="subject" placeholder="e.g., DBMS" required>
+    
+    <div style="margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+      <h4 style="margin-top: 0;">Random Question Selection</h4>
+      <label>
+        <input type="checkbox" name="randomize_questions" id="randomize_checkbox" onchange="toggleRandomOptions()"> 
+        Enable random question selection
+      </label>
+      <div id="random_options" style="margin-top: 10px; display: none;">
+        <label>Questions per attempt (leave empty to show all questions)</label>
+        <input type="number" name="questions_per_attempt" min="1" placeholder="e.g., 10">
+        <small style="color: #666; display: block; margin-top: 5px;">
+          If you upload 20 questions and set this to 10, each student will get 10 randomly selected questions.
+        </small>
+      </div>
+    </div>
+    
+    <button class="btn" type="submit">Create</button>
+  </form>
+</div>
+
+<script>
+function toggleRandomOptions() {
+  const checkbox = document.getElementById('randomize_checkbox');
+  const options = document.getElementById('random_options');
+  if (checkbox.checked) {
+    options.style.display = 'block';
+  } else {
+    options.style.display = 'none';
+  }
+}
+</script>
+{% endblock %}

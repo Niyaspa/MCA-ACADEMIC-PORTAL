@@ -1,0 +1,561 @@
+{% extends "base.html" %}
+{% block content %}
+<!-- Welcome Header -->
+<div class="dashboard-header">
+  <div class="welcome-section">
+    <h1 class="dashboard-title">
+      <i class="fas fa-home"></i>
+      Welcome back, {{ current_user.name.split(' ')[0] }}!
+    </h1>
+    <p class="dashboard-subtitle">Here's what's happening in your academic journey</p>
+  </div>
+  <div class="dashboard-stats">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-bell"></i>
+      </div>
+      <div class="stat-info">
+        <span class="stat-number">{{ notifications|length }}</span>
+        <span class="stat-label">Notifications</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-question-circle"></i>
+      </div>
+      <div class="stat-info">
+        <span class="stat-number">{{ attempts|length }}</span>
+        <span class="stat-label">Quizzes Taken</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Dashboard Content -->
+<div class="grid cols-2">
+  <!-- Notifications Card -->
+  <div class="card notification-card">
+    <div class="card-header">
+      <h3><i class="fas fa-bell"></i> Recent Notifications</h3>
+      <a href="{{ url_for('notifications') }}" class="view-all-link">
+        View All <i class="fas fa-arrow-right"></i>
+      </a>
+    </div>
+    <div class="card-content">
+      {% if notifications %}
+        <div class="notification-list">
+          {% for n in notifications %}
+            <div class="notification-item">
+              <div class="notification-icon">
+                <i class="fas fa-info-circle"></i>
+              </div>
+              <div class="notification-content">
+                <h4 class="notification-title">{{ n.title }}</h4>
+                <p class="notification-body">{{ n.body[:100] }}{% if n.body|length > 100 %}...{% endif %}</p>
+                <div class="notification-meta">
+                  <span class="notification-date">
+                    <i class="fas fa-clock"></i>
+                    {{ n.created_at.strftime('%b %d, %Y') }}
+                  </span>
+                  {% if n.link %}
+                    <a href="{{ n.link }}" target="_blank" class="notification-link">
+                      <i class="fas fa-external-link-alt"></i> Link
+                    </a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <i class="fas fa-bell-slash"></i>
+          <p>No notifications yet</p>
+          <span>You'll see important updates here</span>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Quiz Attempts Card -->
+  <div class="card quiz-card">
+    <div class="card-header">
+      <h3><i class="fas fa-chart-line"></i> Quiz Performance</h3>
+      <a href="{{ url_for('quiz_list') }}" class="view-all-link">
+        Take Quiz <i class="fas fa-play"></i>
+      </a>
+    </div>
+    <div class="card-content">
+      {% if attempts %}
+        <div class="quiz-performance-summary">
+          {% set total_score = attempts|sum(attribute='score') %}
+          {% set total_questions = attempts|sum(attribute='total') %}
+          {% if total_questions > 0 %}
+            <div class="performance-indicator">
+              <div class="performance-circle">
+                <span class="percentage">{{ ((total_score / total_questions) * 100)|round|int }}%</span>
+              </div>
+              <p class="performance-text">Overall Performance</p>
+            </div>
+          {% endif %}
+        </div>
+        
+        <div class="recent-attempts">
+          <h4>Recent Attempts</h4>
+          <div class="attempts-list">
+            {% for a in attempts %}
+              <div class="attempt-item">
+                <div class="attempt-info">
+                  <h5 class="quiz-title">{{ a.quiz.title }}</h5>
+                  <span class="quiz-subject">{{ a.quiz.subject }}</span>
+                </div>
+                <div class="attempt-score">
+                  <div class="score-badge {% if (a.score / a.total) >= 0.8 %}excellent{% elif (a.score / a.total) >= 0.6 %}good{% else %}needs-improvement{% endif %}">
+                    {{ a.score }}/{{ a.total }}
+                  </div>
+                  <span class="attempt-date">{{ a.taken_at.strftime('%b %d') }}</span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <i class="fas fa-question-circle"></i>
+          <p>No quiz attempts yet</p>
+          <span>Start with your first quiz to track progress</span>
+          <a href="{{ url_for('quiz_list') }}" class="btn mt-4">
+            <i class="fas fa-play"></i> Browse Quizzes
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="quick-actions-section">
+  <h3><i class="fas fa-rocket"></i> Quick Actions</h3>
+  <div class="grid cols-4">
+    <a href="{{ url_for('syllabus_list') }}" class="quick-action-card">
+      <div class="action-icon">
+        <i class="fas fa-book"></i>
+      </div>
+      <span>Syllabus</span>
+    </a>
+    
+    <a href="{{ url_for('notes_list') }}" class="quick-action-card">
+      <div class="action-icon">
+        <i class="fas fa-sticky-note"></i>
+      </div>
+      <span>Notes</span>
+    </a>
+    
+    <a href="{{ url_for('papers_list') }}" class="quick-action-card">
+      <div class="action-icon">
+        <i class="fas fa-file-alt"></i>
+      </div>
+      <span>Question Papers</span>
+    </a>
+    
+    <a href="{{ url_for('quiz_list') }}" class="quick-action-card">
+      <div class="action-icon">
+        <i class="fas fa-question-circle"></i>
+      </div>
+      <span>Quizzes</span>
+    </a>
+  </div>
+</div>
+
+<style>
+/* Dashboard Header */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  padding: 24px;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(234, 88, 12, 0.1) 100%);
+  border-radius: 20px;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.dashboard-title i {
+  color: #059669;
+  margin-right: 12px;
+}
+
+.dashboard-subtitle {
+  color: #6b7280;
+  margin: 8px 0 0 0;
+  font-size: 1rem;
+}
+
+.dashboard-stats {
+  display: flex;
+  gap: 16px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #059669, #047857);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.25rem;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Card Headers */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+}
+
+.card-header h3 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 1.25rem;
+}
+
+.card-header h3 i {
+  color: #059669;
+  margin-right: 8px;
+}
+
+.view-all-link {
+  color: #2563eb;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.view-all-link:hover {
+  color: #1d4ed8;
+}
+
+/* Notification Card */
+.notification-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.notification-item {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(249, 250, 251, 0.8);
+  border-radius: 12px;
+  border: 1px solid rgba(229, 231, 235, 0.6);
+}
+
+.notification-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(34, 197, 94, 0.1);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #059669;
+  flex-shrink: 0;
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 4px 0;
+}
+
+.notification-body {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 8px 0;
+  line-height: 1.5;
+}
+
+.notification-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notification-date {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.notification-link {
+  color: #2563eb;
+  font-size: 0.75rem;
+  text-decoration: none;
+}
+
+/* Quiz Performance */
+.quiz-performance-summary {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.performance-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.performance-circle {
+  width: 80px;
+  height: 80px;
+  background: conic-gradient(from 0deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.performance-circle::before {
+  content: '';
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  background: rgba(15, 23, 42, 0.9);
+  border-radius: 50%;
+}
+
+.percentage {
+  position: relative;
+  z-index: 1;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.performance-text {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.recent-attempts h4 {
+  color: #f8fafc;
+  margin-bottom: 12px;
+  font-size: 1rem;
+}
+
+.attempts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.attempt-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 8px;
+  border: 1px solid rgba(71, 85, 105, 0.2);
+}
+
+.quiz-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f8fafc;
+  margin: 0 0 2px 0;
+}
+
+.quiz-subject {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.attempt-score {
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+  gap: 4px;
+}
+
+.score-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  min-width: 40px;
+}
+
+.score-badge.excellent {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.score-badge.good {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.score-badge.needs-improvement {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.attempt-date {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+/* Empty States */
+.empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: #94a3b8;
+}
+
+.empty-state i {
+  font-size: 3rem;
+  color: #475569;
+  margin-bottom: 16px;
+}
+
+.empty-state p {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  margin: 0 0 4px 0;
+}
+
+.empty-state span {
+  font-size: 0.875rem;
+}
+
+/* Quick Actions */
+.quick-actions-section {
+  margin-top: 32px;
+}
+
+.quick-actions-section h3 {
+  color: #f8fafc;
+  margin-bottom: 16px;
+  font-size: 1.5rem;
+}
+
+.quick-actions-section h3 i {
+  color: #60a5fa;
+  margin-right: 8px;
+}
+
+.quick-action-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px;
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  border-radius: 16px;
+  text-decoration: none;
+  color: #cbd5e1;
+  transition: all 0.3s ease;
+}
+
+.quick-action-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px 0 rgba(31, 38, 135, 0.5);
+  border-color: rgba(96, 165, 250, 0.3);
+  color: #f8fafc;
+}
+
+.action-icon {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+}
+
+.quick-action-card span {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .dashboard-header {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+  
+  .dashboard-stats {
+    justify-content: center;
+  }
+  
+  .grid.cols-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .grid.cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+</style>
+{% endblock %}

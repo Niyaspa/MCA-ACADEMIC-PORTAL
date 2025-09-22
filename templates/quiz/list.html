@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2>Available Quizzes</h2>
+  <form method="get" style="display:flex;gap:10px;align-items:center;margin:8px 0 16px;flex-wrap:wrap;">
+    <div style="display:flex;gap:5px;align-items:center;">
+      <label>Semester</label>
+      <input name="semester" value="{{ semester or '' }}" placeholder="e.g., S1" style="width:80px;">
+    </div>
+    <div style="display:flex;gap:5px;align-items:center;">
+      <label>Subject</label>
+      <select name="subject" style="min-width:150px;">
+        <option value="">All Subjects</option>
+        {% for subj in available_subjects %}
+          <option value="{{ subj }}" {% if subj == subject %}selected{% endif %}>{{ subj }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button class="btn small">Filter</button>
+    {% if semester or subject %}
+      <a href="?" class="btn small secondary">Clear</a>
+    {% endif %}
+  </form>
+  {% if items %}
+    <div class="quiz-grid">
+      {% for q in items %}
+        <div class="quiz-card">
+          <div class="quiz-header">
+            <div class="quiz-icon">
+              <i class="fas fa-question-circle"></i>
+            </div>
+            <div class="quiz-type">
+              {% if q.randomize_questions %}
+                <span class="status-badge random">
+                  <i class="fas fa-random"></i> Random
+                </span>
+              {% else %}
+                <span class="status-badge standard">
+                  <i class="fas fa-list"></i> Standard
+                </span>
+              {% endif %}
+            </div>
+          </div>
+          
+          <div class="quiz-content">
+            <h3 class="quiz-title">{{ q.title }}</h3>
+            
+            <div class="quiz-meta">
+              <span class="meta-item">
+                <i class="fas fa-graduation-cap"></i>
+                {{ q.semester }}
+              </span>
+              <span class="meta-item">
+                <i class="fas fa-tag"></i>
+                {{ q.subject }}
+              </span>
+              <span class="meta-item">
+                <i class="fas fa-clipboard-list"></i>
+                {% if q.randomize_questions and q.questions_per_attempt %}
+                  {{ q.questions_per_attempt }} of {{ q.questions|length }} questions
+                {% else %}
+                  {{ q.questions|length }} questions
+                {% endif %}
+              </span>
+            </div>
+          </div>
+          
+          <div class="quiz-actions">
+            <a href="{{ url_for('take_quiz', quiz_id=q.id) }}" class="btn start-quiz-btn">
+              <i class="fas fa-play"></i>
+              Start Quiz
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-quizzes">
+      <div class="empty-icon">
+        <i class="fas fa-question-circle"></i>
+      </div>
+      <h3>No quizzes available</h3>
+      <p>{% if semester or subject %}Try adjusting your filters or{% endif %} check back later for new quizzes.</p>
+      {% if semester or subject %}
+        <a href="?" class="btn">
+          <i class="fas fa-refresh"></i> View All Quizzes
+        </a>
+      {% endif %}
+    </div>
+  {% endif %}
+
+<style>
+.quiz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.quiz-card {
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  border-radius: 16px;
+  padding: 24px;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.quiz-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px 0 rgba(31, 38, 135, 0.5);
+  border-color: rgba(96, 165, 250, 0.3);
+}
+
+.quiz-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.quiz-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: white;
+}
+
+.quiz-type .status-badge {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.random {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.status-badge.standard {
+  background: rgba(156, 163, 175, 0.15);
+  color: #9ca3af;
+  border: 1px solid rgba(156, 163, 175, 0.2);
+}
+
+.quiz-content {
+  flex: 1;
+}
+
+.quiz-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #f8fafc;
+  margin: 0 0 16px 0;
+  line-height: 1.4;
+}
+
+.quiz-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: #94a3b8;
+}
+
+.meta-item i {
+  color: #60a5fa;
+  font-size: 0.75rem;
+  width: 14px;
+}
+
+.quiz-actions {
+  margin-top: auto;
+}
+
+.start-quiz-btn {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.start-quiz-btn:hover {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
+}
+
+.empty-quizzes {
+  text-align: center;
+  padding: 64px 32px;
+  color: #94a3b8;
+}
+
+.empty-quizzes .empty-icon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 24px;
+  background: rgba(71, 85, 105, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  color: #475569;
+}
+
+.empty-quizzes h3 {
+  color: #cbd5e1;
+  font-size: 1.5rem;
+  margin: 0 0 12px 0;
+}
+
+.empty-quizzes p {
+  font-size: 1rem;
+  margin: 0 0 24px 0;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .quiz-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .quiz-card {
+    padding: 20px;
+  }
+}
+</style>
+</div>
+{% endblock %}
